@@ -2,6 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    position: relative;
 }
 
 body {
@@ -60,4 +61,24 @@ body {
 
 .sub-list-open {
     display: block;
+}
+
+/* img */
+
+.img-item {
+    padding: 8px;
+}
+
+.img-item img {
+    width: 200px;
+    height: 200px;
+    display: block;
+    margin: auto;
+    object-fit: cover;
+    overflow: hidden;
+}
+
+.img-item .avatar-img {
+    width: 150px;
+    height: 150px;
 }
