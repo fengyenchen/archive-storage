@@ -19,6 +19,13 @@ body {
     text-align: center;
 }
 
+.title span {
+    font-size: 20px;
+    margin: 0 12px;
+    color: #333;
+    text-decoration: none;
+}
+
 .list {
     display: flex;
     flex-wrap: wrap;
@@ -43,4 +50,14 @@ body {
 .item:hover {
     background-color: #eeede9;
     border-color: #a8a8a8;
+}
+
+/* Sub-list styles */
+
+.sub-list {
+    display: none;
+}
+
+.sub-list-open {
+    display: block;
 }
