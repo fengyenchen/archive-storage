@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>EditART Project</title>
+  </script>
+  <script>
+    const randomSeedEditArt = "EditART2025";
+  </script>
+  <script id="user-code">function createSketch() {
+    const mainContainer = document.getElementById("editart-main");
+    const width = mainContainer.clientWidth;
+    const height = mainContainer.clientHeight;
+    const len = Math.min(width, height);
+
+    const rand = (min, max) => randomEditArt() * (max - min) + min;
+
+    const p = rand(0.15, 0.3);
+    const s1 = { x: width * (0.5 + p), y: height / 2 };
+    const s2 = { x: width * (0.5 - p), y: height / 2 };
+    
+    const res = rand(len / 280, len / 180); 
+    const freq = rand(0.15, 8);
+
+    const palettes = [
+        ["#282D37", "#8C9B96", "#E6E6DC"], 
+        ["#0F1E3C", "#C86432", "#F0D2A0"],
+        ["#484551", "#ED6A5A", "#E6EBE0"], 
+        ["#0B3954", "#FF6663", "#BFD7EA"], 
+        ["#4A2C2A", "#8F5B34", "#D9C5B2"], 
+        ["#1B262C", "#385170", "#9FD3DE"],
+        ["#2F3E46", "#52796F", "#CAD2C5"], 
+        ["#3D405B", "#E07A5F", "#F2CC8F"],
+        ["#22577A", "#38A3A5", "#80ED99"], 
+        ["#006D77", "#83C5BE", "#FFDDD2"],
+        ["#A8dadc", "#457b9d", "#E63946"], 
+        ["#F4A261", "#E76F51", "#2A9D8F"],
+        ["#DDBDF1", "#A186BE", "#7E52A0"]
+    ];
+    const palette = palettes[Math.floor(rand(0, 1) * palettes.length)];
+
+    const sketchContainer = document.createElement("div");
+    sketchContainer.style.position = "relative";
+    sketchContainer.style.width = "100%";
+    sketchContainer.style.height = "100%";
+    sketchContainer.style.backgroundColor = palette[0];
+    sketchContainer.style.backgroundImage = "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3))";
+    sketchContainer.style.overflow = "hidden";
+    mainContainer.appendChild(sketchContainer);
+
+    const fragment = document.createDocumentFragment();
+
+    for (let i = 0; i < width; i += res) {
+        for (let j = 0; j < height; j += res) {
+            
+            const d1 = Math.sqrt((i - s1.x) ** 2 + (j - s1.y) ** 2);
+            const d2 = Math.sqrt((i - s2.x) ** 2 + (j - s2.y) ** 2);
+
+            const val = Math.sin(d1 * freq - d2 * freq);
+
+            if (val > 0.3 || val > -0.55) {
+                const dot = document.createElement("div");
+                dot.style.position = "absolute";
+                dot.style.left = `${i}px`;
+                dot.style.top = `${j}px`;
+                dot.style.borderRadius = "50%";
+                dot.style.transform = "translate(-50%, -50%)";
+
+                if (val > 0.3) {
+                    const sz = ((val - 0.3) / 0.7) * (len / 120 - len / 360) + len / 360;
+                    dot.style.width = `${sz}px`;
+                    dot.style.height = `${sz}px`;
+                    dot.style.backgroundColor = palette[2];
+                    dot.style.opacity = "0.78";
+                } else if (val > -0.55) {
+                    const sz = len / 360;
+                    dot.style.width = `${sz}px`;
+                    dot.style.height = `${sz}px`;
+                    dot.style.backgroundColor = palette[1];
+                    dot.style.opacity = "0.7";
+                } else {
+                    const sz = len / 360;
+                    dot.style.width = `${sz}px`;
+                    dot.style.height = `${sz}px`;
+                    dot.style.backgroundColor = palette[0];
+                    dot.style.opacity = "0.95";
+                }
+                fragment.appendChild(dot);
+            }
+        }
+    }
+
+    sketchContainer.appendChild(fragment);
+  
+    triggerPreview();
+}
+
+function windowResized() {
+    setSeeds();
+    const mainContainer = document.getElementById("editart-main");
+    // Remove all children of main container
+    while (mainContainer.firstChild) {
+        mainContainer.removeChild(mainContainer.firstChild);
+    }
+    createSketch();
+}</script>
+  <style>
+    body {
+      width: 100vw;
+      height: 100vh;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    #editart-main {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="editart-main"></div>
+  <script>
+    parent.postMessage({ editArtTemplateVersion: 1337 }, "*");
+
+    let resetAnimation = false;
+
+    window.capturePreview = false;
+    function triggerPreview() {
+      if (!window.capturePreview) console.log("Trigger preview");
+      window.capturePreview = true;
+      window.parent.postMessage({ type: "sketch-loaded" }, "*");
+    }
+
+    let m0 = 0.5;
+    let m1 = 0.5;
+    let m2 = 0.5;
+    let m3 = 0.5;
+    let m4 = 0.5;
+
+    let randomM0;
+    let randomM1;
+    let randomM2;
+    let randomM3;
+    let randomM4;
+    let randomEditArt;
+
+    // Use query string from the iframe's URL
+    const queryString = window.location.search;
+    console.log(queryString);
+    if (queryString) {
+      getParams(queryString);
+    }
+
+    seedPRNG();
+    triggerDraw();
+
+    function getParam(urlParams, p) {
+      const param = urlParams.get(p);
+      if (param) {
+        let validParam = /^0\.\d{3}$/.test(param);
+        if (validParam) {
+          return parseFloat(param);
+        }
+      }
+      document.write("");
+      window.stop && window.stop();
+      throw new Error(
+        `Invalid parameter: ${p}=${param}. Must be a number between 0.000 and 0.999.`
+      );
+    }
+
+    function getParams(queryString) {
+      const urlParams = new URLSearchParams(queryString);
+      m0 = getParam(urlParams, "m0");
+      m1 = getParam(urlParams, "m1");
+      m2 = getParam(urlParams, "m2");
+      m3 = getParam(urlParams, "m3");
+      m4 = getParam(urlParams, "m4");
+    }
+    window.addEventListener("message", (e) => {
+      var data = e.data;
+      if (data.hasOwnProperty("editartQueryString")) {
+        getParams(data["editartQueryString"]);
+        triggerDraw();
+      }
+    });
+
+    function triggerDraw() {
+      seedPRNG();
+      const mainContainer = document.getElementById("editart-main");
+      // Remove all children of main container
+      while (mainContainer.firstChild) {
+        mainContainer.removeChild(mainContainer.firstChild);
+      }
+
+      createSketch();
+    }
+
+
+    function setSeeds() {
+      seedPRNG();
+    }
+
+    function getRNG(num) {
+      return sfc32(...cyrb128(randomSeedEditArt + num.toString()));
+    }
+
+    function seedPRNG() {
+      randomM0 = getRNG(m0);
+      randomM1 = getRNG(m1);
+      randomM2 = getRNG(m2);
+      randomM3 = getRNG(m3);
+      randomM4 = getRNG(m4);
+      randomEditArt = getRNG(`${m0}${m1}${m2}${m3}${m4}`);
+    }
+
+    function cyrb128(str) {
+      let h1 = 1779033703,
+        h2 = 3144134277,
+        h3 = 1013904242,
+        h4 = 2773480762;
+      for (let i = 0, k; i < str.length; i++) {
+        k = str.charCodeAt(i);
+        h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+        h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+        h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+        h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+      }
+      h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+      h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+      h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+      h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+      return [
+        (h1 ^ h2 ^ h3 ^ h4) >>> 0,
+        (h2 ^ h1) >>> 0,
+        (h3 ^ h1) >>> 0,
+        (h4 ^ h1) >>> 0,
+      ];
+    }
+
+    function sfc32(a, b, c, d) {
+      return function () {
+        a >>>= 0;
+        b >>>= 0;
+        c >>>= 0;
+        d >>>= 0;
+        var t = (a + b) | 0;
+        a = b ^ (b >>> 9);
+        b = (c + (c << 3)) | 0;
+        c = (c << 21) | (c >>> 11);
+        d = (d + 1) | 0;
+        t = (t + d) | 0;
+        c = (c + t) | 0;
+        return (t >>> 0) / 4294967296;
+      };
+    }
+
+  </script>
+  </script>
+</body>
+
+</html>
